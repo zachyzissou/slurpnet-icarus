@@ -6,6 +6,11 @@ pak/*.pak
 pak/*.zip
 pak/*.manifest.json
 
+Mods/source-paks/
+Mods/source-metadata/
+Mods/extracted/
+tools/
+
 *.log
 *.tmp
 *.bak
