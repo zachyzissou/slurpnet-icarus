@@ -1,0 +1,6 @@
+[allowlist]
+description = "Allow public-safe blank Icarus ServerSettings password keys"
+regexes = [
+  '''(?m)^JoinPassword=$''',
+  '''(?m)^AdminPassword=$'''
+]
