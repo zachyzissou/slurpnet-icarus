@@ -1,0 +1,62 @@
+name: icarus-deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/deploy-icarus.yml"
+      - "config/**"
+      - "docker/**"
+      - "launcher/**"
+      - "Mods/**"
+      - "pack.json"
+      - "PACK_PUBLISHING.md"
+      - "scripts/**"
+      - "README.md"
+      - "CHANGELOG.md"
+  workflow_dispatch:
+
+concurrency:
+  group: icarus-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, Linux, X64, unraid, lan, icarus-prod]
+    environment: production-icarus
+    env:
+      SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+      SLURPNET_LAUNCHER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+      SERVER_NAME: "SlurpNet Icarus"
+      MAX_PLAYERS: "8"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # pak/SlurpNet.pak is intentionally gitignored because it is a
+          # generated mod-manager output. Preserve an operator-staged pak in
+          # the persistent runner workspace instead of deleting ignored files.
+          clean: false
+
+      - name: Validate release
+        run: scripts/validate-icarus-release.sh
+
+      - name: Validate self-hosted runner readiness
+        run: bash scripts/validate-unraid-runner-ready.sh
+
+      - name: Render production ServerSettings.ini
+        run: |
+          cat > .env.production <<EOF
+          SERVER_NAME="${SERVER_NAME}"
+          SERVER_PASSWORD=${SERVER_PASSWORD}
+          ADMIN_PASSWORD=${ADMIN_PASSWORD}
+          MAX_PLAYERS=${MAX_PLAYERS}
+          EOF
+          scripts/render-server-settings.sh .env.production config/ServerSettings.ini
+
+      - name: Deploy server config and pak
+        run: bash scripts/deploy.sh "$GITHUB_WORKSPACE"
+
+      - name: Build client pack and update launcher feeds
+        run: python3 scripts/build-client-pack.py

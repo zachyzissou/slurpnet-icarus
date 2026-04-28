@@ -1,0 +1,47 @@
+{
+  "serverId": "icarus",
+  "game": "Icarus",
+  "distributionMode": "full_modpack",
+  "version": "2026.04.28a",
+  "zipName": "SlurpNet_Icarus_Mods.zip",
+  "manifestName": "SlurpNet_Icarus_Mods-manifest.json",
+  "blobPrefix": "icarus",
+  "artifactRoot": "api",
+  "liveZipUrl": "https://mods.slurpgg.net/api/SlurpNet_Icarus_Mods.zip",
+  "liveManifestUrl": "https://mods.slurpgg.net/api/SlurpNet_Icarus_Mods-manifest.json",
+  "clientArchivePath": "Icarus/Content/Paks/mods/SlurpNet.pak",
+  "deployment": {
+    "layout": "single-merged-icarus-pak",
+    "managedModRoots": [
+      "Icarus/Content/Paks/mods"
+    ],
+    "userOwnedPrefixes": [
+      "Icarus/Saved/",
+      "Icarus/Content/Paks/*.pak"
+    ],
+    "stagingCompatible": true
+  },
+  "launcher": {
+    "name": "SlurpNet Icarus",
+    "description": "Co-op PvE survival on Prometheus. Open-world persistent server with the Comfortable mod tier — Icarus Plus, beacon teleport, item finder, cave master, kept trees, and 5x food buff.",
+    "modCount": 6,
+    "worldName": "Prometheus",
+    "maxPlayers": 8,
+    "features": [
+      "Open World",
+      "6 Mods",
+      "2x XP",
+      "Beacon Teleport",
+      "Cave Master",
+      "No Grind"
+    ],
+    "connectInstructions": "Install the SlurpNet Icarus pack via the launcher (single merged .pak required — weekly Icarus updates may force a re-pack). Launch Icarus from Steam, choose Open World > Join, find SlurpNet in the server browser, password required.",
+    "steamAppId": 1149460,
+    "launchArgs": [],
+    "steamInstallDir": "Icarus",
+    "serverSideOnly": false,
+    "serverPort": 17787,
+    "queryPort": 27017,
+    "sourceRepository": "https://github.com/zachyzissou/slurpnet-icarus"
+  }
+}

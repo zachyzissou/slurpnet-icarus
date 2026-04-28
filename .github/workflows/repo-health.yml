@@ -1,0 +1,33 @@
+name: repo-health
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  required-files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check baseline files
+        run: |
+          missing=0
+          for file in README.md SECURITY.md CONTRIBUTING.md SUPPORT.md AGENTS.md CODE_OF_CONDUCT.md CODEOWNERS; do
+            if [ ! -f "$file" ] && [ ! -f ".github/$file" ]; then
+              echo "::error file=$file::Missing required baseline file"
+              missing=1
+            fi
+          done
+          if [ ! -f ".github/copilot-instructions.md" ]; then
+            echo "::error file=.github/copilot-instructions.md::Missing required Copilot instructions"
+            missing=1
+          fi
+          exit "$missing"
+
+      - name: Validate Icarus contract
+        run: scripts/validate-icarus-release.sh
+

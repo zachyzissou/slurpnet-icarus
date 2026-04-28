@@ -1,0 +1,36 @@
+services:
+  icarus:
+    container_name: Icarus
+    # Preferred plan image `ich777/icarus-server` did not resolve during scaffold.
+    # Verified fallback: Docker Hub tag `ich777/steamcmd:icarus`; ich777 Unraid
+    # template currently points at `ghcr.io/ich777/steamcmd:icarus`.
+    image: ich777/steamcmd:icarus
+    network_mode: bridge
+    restart: unless-stopped
+    cpuset: "32-47,96-111"
+    mem_limit: 24g
+    ports:
+      - "${GAME_PORT:-17787}:${GAME_PORT:-17787}/udp"
+      - "${QUERY_PORT:-27017}:${QUERY_PORT:-27017}/udp"
+    volumes:
+      - /mnt/user/appdata/steamcmd:/serverdata/steamcmd
+      - /mnt/cache/appdata/icarus:/serverdata/serverfiles
+    environment:
+      GAME_ID: "${GAME_ID:-2089300}"
+      # Verified in ich777 Unraid template.
+      GAME_PARAMS: >-
+        -SteamServerName="${SERVER_NAME:-SlurpNet Icarus}"
+        -Port=${GAME_PORT:-17787}
+        -QueryPort=${QUERY_PORT:-27017}
+      VALIDATE: "${VALIDATE:-}"
+      UID: "${UID:-99}"
+      GID: "${GID:-100}"
+      # TODO verify env name: ich777's Icarus template does not document these
+      # as native variables; deploy scripts render them into ServerSettings.ini.
+      GAME_PORT: "${GAME_PORT:-17787}"
+      QUERY_PORT: "${QUERY_PORT:-27017}"
+      SERVER_NAME: "${SERVER_NAME:-SlurpNet Icarus}"
+      SERVER_PASSWORD: "${SERVER_PASSWORD}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
+      MAX_PLAYERS: "${MAX_PLAYERS:-8}"
+

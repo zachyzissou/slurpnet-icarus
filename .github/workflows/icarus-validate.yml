@@ -1,0 +1,19 @@
+name: icarus-validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate Icarus release contract
+        run: scripts/validate-icarus-release.sh
+      - name: Validate launcher metadata
+        run: python3 -m json.tool pack.json launcher/servers-entry.json >/dev/null
