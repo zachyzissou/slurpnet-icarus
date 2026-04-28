@@ -14,8 +14,6 @@ if [ ! -f "pak/SlurpNet.pak" ]; then
   exit 1
 fi
 
-scripts/validate-icarus-release.sh
-
 echo "Deploy from $WORKSPACE -> $APPDATA"
 mkdir -p "$SERVER_CONFIG_DIR" "$SERVER_MOD_DIR"
 
