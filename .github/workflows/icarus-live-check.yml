@@ -1,0 +1,19 @@
+name: icarus-live-check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  live-check:
+    runs-on: [self-hosted, Linux, X64, unraid, lan, icarus-prod]
+    steps:
+      - name: Inspect Icarus container
+        run: |
+          set -euo pipefail
+          docker ps --filter name=Icarus --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+          docker inspect Icarus --format 'name={{.Name}} image={{.Config.Image}} restart={{.HostConfig.RestartPolicy.Name}} cpuset={{.HostConfig.CpusetCpus}} memory={{.HostConfig.Memory}}'
+          docker top Icarus -eo pid,ppid,comm,args | head -80
+          ss -lunpt | grep -E ':(17787|27017)\b'
+          test -f /mnt/cache/appdata/icarus/Icarus/Content/Paks/mods/SlurpNet.pak
+          sha256sum /mnt/cache/appdata/icarus/Icarus/Content/Paks/mods/SlurpNet.pak
+          docker logs --tail 160 Icarus
