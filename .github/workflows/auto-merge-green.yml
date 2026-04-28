@@ -1,0 +1,101 @@
+name: auto-merge-green
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+  check_suite:
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number to queue for auto-merge
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  automerge-pr-event:
+    if: github.event_name == 'pull_request_target' && !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    steps:
+      - name: Queue trusted PR for auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          set -euo pipefail
+          case "$AUTHOR_ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR) ;;
+            *) echo "Skipping untrusted PR author association: $AUTHOR_ASSOCIATION"; exit 0 ;;
+          esac
+          if [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "Skipping fork PR: $HEAD_REPO"
+            exit 0
+          fi
+          if printf '%s\n' "$LABELS" | grep -q '"no-automerge"'; then
+            echo "Skipping PR labeled no-automerge"
+            exit 0
+          fi
+          gh pr merge "$PR_URL" --auto --squash --delete-branch
+
+  automerge-after-checks:
+    if: github.event_name == 'check_suite' && github.event.check_suite.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Queue trusted PRs for auto-merge after green checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.check_suite.head_sha }}
+        run: |
+          set -euo pipefail
+          prs="$(gh pr list --repo "$REPO" --state open --search "$SHA" --json number,url,isDraft,authorAssociation,headRepositoryOwner,labels)"
+          count="$(printf '%s' "$prs" | jq 'length')"
+          if [ "$count" = "0" ]; then
+            echo "No open PR found for check suite SHA $SHA"
+            exit 0
+          fi
+          printf '%s' "$prs" | jq -c '.[]' | while read -r pr; do
+            is_draft="$(printf '%s' "$pr" | jq -r '.isDraft')"
+            assoc="$(printf '%s' "$pr" | jq -r '.authorAssociation')"
+            owner="$(printf '%s' "$pr" | jq -r '.headRepositoryOwner.login')"
+            url="$(printf '%s' "$pr" | jq -r '.url')"
+            labels="$(printf '%s' "$pr" | jq -r '[.labels[].name] | join(",")')"
+            if [ "$is_draft" = "true" ]; then
+              echo "Skipping draft PR $url"
+              continue
+            fi
+            case "$assoc" in
+              OWNER|MEMBER|COLLABORATOR) ;;
+              *) echo "Skipping untrusted PR $url author association: $assoc"; continue ;;
+            esac
+            if [ "$owner" != "${REPO%/*}" ]; then
+              echo "Skipping fork PR $url"
+              continue
+            fi
+            if printf '%s\n' "$labels" | grep -Eq '(^|,)no-automerge(,|$)'; then
+              echo "Skipping PR labeled no-automerge: $url"
+              continue
+            fi
+            gh pr merge "$url" --auto --squash --delete-branch
+          done
+
+  automerge-manual:
+    if: github.event_name == 'workflow_dispatch' && inputs.pr != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Queue selected PR for auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ inputs.pr }}
+        run: |
+          set -euo pipefail
+          gh pr merge "$PR" --repo "$REPO" --auto --squash --delete-branch
