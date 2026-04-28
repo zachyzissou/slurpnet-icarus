@@ -26,7 +26,12 @@ echo "Syncing pak/SlurpNet.pak -> $SERVER_MOD_DIR/SlurpNet.pak"
 rsync -a pak/SlurpNet.pak "$SERVER_MOD_DIR/SlurpNet.pak"
 
 echo "Restarting $CONTAINER..."
-docker restart "$CONTAINER"
+if docker inspect "$CONTAINER" >/dev/null 2>&1; then
+  docker restart "$CONTAINER"
+else
+  echo "Container $CONTAINER not found; creating it from docker/docker-compose.yml..."
+  docker compose -f docker/docker-compose.yml --env-file "$APPDATA/.env" up -d
+fi
 
 echo "Verifying container is running..."
 docker inspect -f '{{.State.Running}}' "$CONTAINER" | grep -q '^true$'

@@ -56,14 +56,15 @@ fi
 if ! docker info >/dev/null 2>&1; then
   fail "docker daemon is unavailable; Unraid Docker may be stopped"
 fi
-if ! docker inspect "$CONTAINER" >/dev/null 2>&1; then
-  fail "Icarus container not found: $CONTAINER"
-fi
-
-container_state="$(docker inspect "$CONTAINER" --format '{{.State.Status}}')"
-restart_policy="$(docker inspect "$CONTAINER" --format '{{.HostConfig.RestartPolicy.Name}}')"
-if [ "$restart_policy" != "unless-stopped" ]; then
-  warn "Icarus container restart policy is '$restart_policy'; expected 'unless-stopped'"
+container_state="missing"
+if docker inspect "$CONTAINER" >/dev/null 2>&1; then
+  container_state="$(docker inspect "$CONTAINER" --format '{{.State.Status}}')"
+  restart_policy="$(docker inspect "$CONTAINER" --format '{{.HostConfig.RestartPolicy.Name}}')"
+  if [ "$restart_policy" != "unless-stopped" ]; then
+    warn "Icarus container restart policy is '$restart_policy'; expected 'unless-stopped'"
+  fi
+else
+  warn "Icarus container not found yet: $CONTAINER. First deploy will create it from docker/docker-compose.yml."
 fi
 
 echo "Runner preflight passed: appdata=$APPDATA steamcmd=$STEAMCMD_ROOT container=$CONTAINER state=$container_state"
