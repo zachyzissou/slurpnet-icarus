@@ -64,7 +64,7 @@ jobs:
       - name: Trigger launcher feed re-sign
         if: success()
         env:
-          GH_TOKEN: ${{ secrets.LAUNCHER_DISPATCH_PAT }}
+          GH_TOKEN: ${{ secrets.CROSS_REPO_TOKEN }}
         run: |
           gh api -X POST /repos/zachyzissou/slurpnet-launcher/dispatches \
             -f event_type=feed-updated \
