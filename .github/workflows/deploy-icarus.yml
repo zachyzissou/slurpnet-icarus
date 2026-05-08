@@ -60,3 +60,12 @@ jobs:
 
       - name: Build client pack and update launcher feeds
         run: python3 scripts/build-client-pack.py
+
+      - name: Trigger launcher feed re-sign
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.LAUNCHER_DISPATCH_PAT }}
+        run: |
+          gh api -X POST /repos/zachyzissou/slurpnet-launcher/dispatches \
+            -f event_type=feed-updated \
+            -f "client_payload[source]=${{ github.repository }}"
