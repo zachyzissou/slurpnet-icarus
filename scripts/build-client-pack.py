@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PACK_PATH = ROOT / "pack.json"
 PAK_PATH = ROOT / "pak" / "SlurpNet.pak"
-DEFAULT_DOWNLOADS_DIR = Path("/mnt/cache/appdata/7dtd-downloads")
+DEFAULT_DOWNLOADS_DIR = Path(os.environ.get("SLURPNET_CONTENT_ROOT", "/mnt/cache/appdata/slurpnet-content-origin"))
 
 
 def sha256_file(path: Path) -> str:

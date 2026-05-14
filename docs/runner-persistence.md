@@ -19,7 +19,7 @@ Unraid host, matching the current SlurpNet game-server pattern.
   - `/mnt/user/appdata/slurpnet-icarus-runner-work`
   - `/mnt/cache/appdata/icarus`
   - `/mnt/user/appdata/steamcmd`
-  - `/mnt/cache/appdata/7dtd-downloads`
+  - `/mnt/cache/appdata/slurpnet-content-origin`
 
 The workflow checks out the repo on the Unraid runner, validates the runner can
 see the live appdata and Docker daemon, renders production `ServerSettings.ini`
