@@ -14,7 +14,7 @@ WORK_DIR="${ICARUS_RUNNER_WORK_DIR:-/mnt/user/appdata/slurpnet-icarus-runner-wor
 IMAGE="${ICARUS_RUNNER_IMAGE:-myoung34/github-runner:latest}"
 APPDATA="${ICARUS_APPDATA:-/mnt/cache/appdata/icarus}"
 STEAMCMD_ROOT="${ICARUS_STEAMCMD_ROOT:-/mnt/user/appdata/steamcmd}"
-DOWNLOADS_ROOT="${ICARUS_DOWNLOADS_ROOT:-/mnt/cache/appdata/7dtd-downloads}"
+DOWNLOADS_ROOT="${ICARUS_DOWNLOADS_ROOT:-${SLURPNET_CONTENT_ROOT:-/mnt/cache/appdata/slurpnet-content-origin}}"
 
 if ! command -v gh >/dev/null 2>&1; then
   echo "ERROR: gh CLI is required" >&2

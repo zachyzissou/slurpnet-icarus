@@ -36,7 +36,7 @@ python3 scripts/build-client-pack.py
 ```
 
 The script writes the zip, manifest, blob file, and feed metadata under
-`/mnt/cache/appdata/7dtd-downloads/api` by default.
+`/mnt/cache/appdata/slurpnet-content-origin/api` by default.
 
 Set `ICARUS_DOWNLOADS_DIR` to override the publish root for local dry runs.
 
