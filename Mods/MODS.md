@@ -9,19 +9,20 @@ use the identical merged pak.
 | Mod | Tier | Source URL | Notes |
 |---|---|---|---|
 | Icarus Plus | Comfortable | <https://www.nexusmods.com/icarus/mods/141?tab=files> file `1329` | Core quality-of-life baseline; downloaded as `Icarus Plus 3.0.4.150844` |
-| laanp-PetesBeaconTeleport | Comfortable | <https://github.com/laanp/Icarus_Mods_Separated/releases/download/v1_w229/laanp-PetesBeaconTeleport_v1_w229_P.pak> | Beacon teleport |
-| ItemFinder | Comfortable | <https://github.com/laanp/Icarus_Mods_Separated/releases/download/v1_w229/laanp-ItemFinder_v1_w229_P.pak> | Find dropped/stored items |
-| CaveMaster | Comfortable | <https://github.com/laanp/Icarus_Mods_Separated/releases/download/v1_w229/laanp-CaveMaster_v1_w229_P.pak> | Cave quality-of-life |
-| KeepTheTrees | Comfortable | <https://github.com/laanp/Icarus_Mods_Separated/releases/download/v1_w229/laanp-KeepTheTrees_v1_w229_P.pak> | Prevents tree-loss grind |
+| laanp-PetesBeaconTeleport | Comfortable | <https://github.com/laanp/Icarus_Mods_Separated/releases/download/v1_w233/laanp-PetesBeaconTeleport_v1_w233_P.pak> | Beacon teleport |
+| ItemFinder | Comfortable | <https://github.com/laanp/Icarus_Mods_Separated/releases/download/v1_w233/laanp-ItemFinder_v1_w233_P.pak> | Find dropped/stored items |
+| CaveMaster | Comfortable | <https://github.com/laanp/Icarus_Mods_Separated/releases/download/v1_w233/laanp-CaveMaster_v1_w233_P.pak> | Cave quality-of-life |
+| KeepTheTrees | Comfortable | <https://github.com/laanp/Icarus_Mods_Separated/releases/download/v1_w233/laanp-KeepTheTrees_v1_w233_P.pak> | Prevents tree-loss grind |
 | Food Buff 5x | Comfortable | <https://www.nexusmods.com/icarus/mods/123?tab=files> file `1417` | Longer food buff duration; downloaded as `Food Buff Duration 5x` |
 
 ## Current Build
 
 - Output: `pak/SlurpNet.pak`
-- SHA256: `e7fab780fdcbb51ea824426e687fcdc8846b30f43876418cd1ecc67f9da2e8b5`
-- Build host/tool: `repak v0.2.3` on SlurpNet Unraid
-- Merge policy: unpack all six paks, structured-merge duplicate JSON data
-  tables by `Rows[].Name`, then repack as one pak.
+- SHA256: `080dabdb93bca09b63a1d99a759ee66ecee7bd2d76b39f5c579027046cc9c8d5`
+- Build host/tool: `repak v0.2.3` (locally on macOS, case-sensitive APFS image)
+- Merge policy: unpack all six paks, canonicalize `Icarus/Content/data/` → `Icarus/Content/Data/`,
+  structured-merge duplicate JSON data tables by `Rows[].Name`, last-wins on binary
+  conflicts (priority order: IcarusPlus → laanp set → Food Buff 5x), then repack as V11.
 
 ## Merge Contract
 
