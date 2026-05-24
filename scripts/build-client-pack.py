@@ -48,14 +48,19 @@ def build_entry(pack: dict, zip_size: int, private: bool) -> dict:
             "version": pack["version"],
             "size": zip_size,
         },
+        # launchArgs / steamInstallDir / serverSideOnly are NOT secret — they're
+        # CLI flags + filesystem hints the launcher uses to actually start the
+        # game. Keep them in the public entry so the launcher (which fetches
+        # mods.slurpgg.net/api/servers.json — see slurpnet-launcher
+        # electron/ipc/servers.ts) can read them without auth.
+        "launchArgs": launcher.get("launchArgs", []),
+        "steamInstallDir": launcher["steamInstallDir"],
+        "serverSideOnly": launcher["serverSideOnly"],
     }
     if private:
         entry.update(
             {
                 "password": os.environ.get("SLURPNET_LAUNCHER_PASSWORD", ""),
-                "launchArgs": launcher.get("launchArgs", []),
-                "steamInstallDir": launcher["steamInstallDir"],
-                "serverSideOnly": launcher["serverSideOnly"],
             }
         )
         entry["modpack"].update(
