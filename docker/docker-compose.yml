@@ -10,25 +10,31 @@ services:
     cpuset: "32-47,96-111"
     mem_limit: 24g
     ports:
-      - "${GAME_PORT:-17787}:${GAME_PORT:-17787}/udp"
-      - "${QUERY_PORT:-27017}:${QUERY_PORT:-27017}/udp"
+      # Host-side published ports (GAME_PORT/QUERY_PORT) map to Icarus defaults
+      # inside the container (17777 game / 27015 query). The host scheme avoids
+      # conflicts with Arma Reforger (17777) and 7 Days to Die (27015) on the
+      # same Unraid box.
+      - "${GAME_PORT:-20008}:17777/udp"
+      - "${QUERY_PORT:-20009}:27015/udp"
     volumes:
       - /mnt/user/appdata/steamcmd:/serverdata/steamcmd
       - /mnt/cache/appdata/icarus:/serverdata/serverfiles
     environment:
       GAME_ID: "${GAME_ID:-2089300}"
-      # Verified in ich777 Unraid template.
+      # Verified in ich777 Unraid template. The container binds Icarus defaults
+      # internally; the host mapping above publishes them on the SlurpNet ports.
       GAME_PARAMS: >-
         -SteamServerName="${SERVER_NAME:-SlurpNet Icarus}"
-        -Port=${GAME_PORT:-17787}
-        -QueryPort=${QUERY_PORT:-27017}
+        -Port=17777
+        -QueryPort=27015
+        -log
       VALIDATE: "${VALIDATE:-}"
       UID: "${UID:-99}"
       GID: "${GID:-100}"
       # TODO verify env name: ich777's Icarus template does not document these
       # as native variables; deploy scripts render them into ServerSettings.ini.
-      GAME_PORT: "${GAME_PORT:-17787}"
-      QUERY_PORT: "${QUERY_PORT:-27017}"
+      GAME_PORT: "${GAME_PORT:-20008}"
+      QUERY_PORT: "${QUERY_PORT:-20009}"
       SERVER_NAME: "${SERVER_NAME:-SlurpNet Icarus}"
       SERVER_PASSWORD: "${SERVER_PASSWORD}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
