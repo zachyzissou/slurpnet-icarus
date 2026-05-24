@@ -37,7 +37,7 @@
     ],
     "connectInstructions": "Install the SlurpNet Icarus pack via the launcher (single merged .pak required — weekly Icarus updates may force a re-pack). Launch Icarus from Steam, choose Open World > Join, find SlurpNet in the server browser, password required.",
     "steamAppId": 1149460,
-    "launchArgs": [],
+    "launchArgs": ["-dx12"],
     "steamInstallDir": "Icarus",
     "serverSideOnly": false,
     "serverPort": 20008,

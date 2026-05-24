@@ -15,7 +15,7 @@
     "No Grind"
   ],
   "steamAppId": 1149460,
-  "launchArgs": [],
+  "launchArgs": ["-dx12"],
   "steamInstallDir": "Icarus",
   "serverSideOnly": false,
   "serverPort": 20008,
