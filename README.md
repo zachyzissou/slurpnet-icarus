@@ -37,14 +37,16 @@ tag did not resolve during scaffolding. The current ich777 Unraid template uses
 
 ## Ports
 
-| Purpose | Host port | Protocol |
-|---|---:|---|
-| Game | `17787` | UDP |
-| Query | `27017` | UDP |
+| Purpose | Host port | Container port | Protocol |
+|---|---:|---:|---|
+| Game | `20008` | `17777` | UDP |
+| Query | `20009` | `27015` | UDP |
 
-Icarus defaults are `17777/UDP` and `27015/UDP`; SlurpNet remaps them because
-`17777/UDP` is already Arma Reforger A2S and live Unraid currently binds
-`27015/UDP` for 7 Days to Die.
+The container binds Icarus defaults internally (`17777/UDP` game,
+`27015/UDP` query). Docker publishes them on SlurpNet host ports `20008` and
+`20009`, which is what UniFi forwards. The host scheme avoids two conflicts on
+this Unraid box: `17777/UDP` is already Arma Reforger A2S, and `27015/UDP` is
+bound by 7 Days to Die.
 
 ## Mod pak compatibility
 
@@ -80,10 +82,11 @@ password or admin password.
 
 Forward these UDP ports to the Unraid host `192.168.225.196`:
 
-- `17787/UDP`
-- `27017/UDP`
+- `20008/UDP` (game)
+- `20009/UDP` (query)
 
-Do not reuse Icarus defaults on the router.
+Do not reuse Icarus defaults on the router — `17777/UDP` and `27015/UDP` are
+owned by other game servers on this host.
 
 ## Local setup
 

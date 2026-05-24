@@ -40,8 +40,8 @@
     "launchArgs": [],
     "steamInstallDir": "Icarus",
     "serverSideOnly": false,
-    "serverPort": 17787,
-    "queryPort": 27017,
+    "serverPort": 20008,
+    "queryPort": 20009,
     "sourceRepository": "https://github.com/zachyzissou/slurpnet-icarus"
   }
 }
