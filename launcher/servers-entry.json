@@ -2,9 +2,9 @@
   "serverId": "icarus",
   "game": "Icarus",
   "name": "SlurpNet Icarus",
-  "description": "Co-op PvE survival on Prometheus. Open-world persistent server with the Comfortable mod tier - Icarus Plus, beacon teleport, item finder, cave master, kept trees, and 5x food buff.",
+  "description": "Co-op PvE survival on Olympus. Open-world persistent server (Slurplympus prospect) with the Comfortable mod tier - Icarus Plus, beacon teleport, item finder, cave master, kept trees, and 5x food buff.",
   "modCount": 6,
-  "worldName": "Prometheus",
+  "worldName": "Olympus",
   "maxPlayers": 8,
   "features": [
     "Open World",

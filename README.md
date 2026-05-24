@@ -9,7 +9,7 @@ Current stable baseline:
 - image: `ich777/steamcmd:icarus`
 - server name: `SlurpNet Icarus`
 - mode: Open World, persistent
-- world: Prometheus
+- world: Olympus (prospect: `Slurplympus`, template `Outpost006_Olympus`)
 - max players: 8
 - appdata: `/mnt/cache/appdata/icarus/`
 - Steam server app: `2089300`
