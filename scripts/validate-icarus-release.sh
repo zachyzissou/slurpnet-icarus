@@ -38,8 +38,8 @@ grep -q '^ADMIN_PASSWORD=$' .env.example || { echo "ERROR: .env.example must kee
 grep -q 'SERVER_NAME="SlurpNet Icarus"' .env.example || { echo "ERROR: .env.example missing server name" >&2; exit 1; }
 
 grep -q 'image: ich777/steamcmd:icarus' docker/docker-compose.yml || { echo "ERROR: compose image must use verified fallback" >&2; exit 1; }
-grep -q '\${GAME_PORT:-20008}:17777/udp' docker/docker-compose.yml || { echo "ERROR: compose missing game UDP port mapping (host 20008 -> container 17777)" >&2; exit 1; }
-grep -q '\${QUERY_PORT:-20009}:27015/udp' docker/docker-compose.yml || { echo "ERROR: compose missing query UDP port mapping (host 20009 -> container 27015)" >&2; exit 1; }
+grep -q '\${GAME_PORT:-20008}:\${GAME_PORT:-20008}/udp' docker/docker-compose.yml || { echo "ERROR: compose missing symmetric game UDP port mapping (host:container both \${GAME_PORT:-20008})" >&2; exit 1; }
+grep -q '\${QUERY_PORT:-20009}:\${QUERY_PORT:-20009}/udp' docker/docker-compose.yml || { echo "ERROR: compose missing symmetric query UDP port mapping (host:container both \${QUERY_PORT:-20009})" >&2; exit 1; }
 grep -q 'cpuset: "32-47,96-111"' docker/docker-compose.yml || { echo "ERROR: compose missing SlurpNet CPU pinning" >&2; exit 1; }
 grep -q 'mem_limit: 24g' docker/docker-compose.yml || { echo "ERROR: compose missing 24g memory ceiling" >&2; exit 1; }
 
