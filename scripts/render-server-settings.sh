@@ -18,6 +18,17 @@ set +a
 : "${SERVER_PASSWORD:?SERVER_PASSWORD is required}"
 : "${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}"
 : "${MAX_PLAYERS:=8}"
+# LoadProspect names a saved prospect under
+# Icarus/Saved/PlayerData/DedicatedServer/Prospects/<NAME>.json. Without it
+# the server boots into the entry map and the in-game Load/New buttons are
+# greyed for non-admin players, so the operator-curated world never starts.
+: "${LOAD_PROSPECT:=Slurplympus}"
+# Allow any password-authed player to load/create a prospect. With this
+# False, players who join without admin rights can only sit in the lobby.
+# The server is password-protected at the join step already, so opening up
+# prospect launch is appropriate for a small private server.
+: "${ALLOW_NON_ADMINS_TO_LAUNCH_PROSPECTS:=True}"
+: "${ALLOW_NON_ADMINS_TO_DELETE_PROSPECTS:=False}"
 
 cat > "$OUT_FILE" <<EOF
 [/Script/Icarus.DedicatedServerSettings]
@@ -27,10 +38,10 @@ MaxPlayers=${MAX_PLAYERS}
 AdminPassword=${ADMIN_PASSWORD}
 ShutdownIfNotJoinedFor=-1
 ShutdownIfEmptyFor=-1
-AllowNonAdminsToLaunchProspects=False
-AllowNonAdminsToDeleteProspects=False
+AllowNonAdminsToLaunchProspects=${ALLOW_NON_ADMINS_TO_LAUNCH_PROSPECTS}
+AllowNonAdminsToDeleteProspects=${ALLOW_NON_ADMINS_TO_DELETE_PROSPECTS}
 ResumeProspect=True
-LoadProspect=
+LoadProspect=${LOAD_PROSPECT}
 CreateProspect=
 LastProspectName=
 
