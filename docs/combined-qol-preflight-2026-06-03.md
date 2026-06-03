@@ -95,11 +95,51 @@ swap:
   data tables or an IMM merge proof, not only the raw last-writer `repak`
   artifact above.
 
+## Non-Production Boot Proof
+
+Ran on the Unraid host on 2026-06-03 with a temporary appdata copy and temporary
+container `IcarusPreflightCombinedQOL`.
+
+Isolation:
+
+- appdata source: `/mnt/cache/appdata/icarus`
+- temporary appdata: `/mnt/cache/appdata/icarus-preflight-combined-qol-20260603`
+- copy mode: reflink
+- candidate installed as:
+  `/mnt/cache/appdata/icarus-preflight-combined-qol-20260603/Icarus/Content/Paks/mods/SlurpNet.pak`
+- candidate SHA:
+  `cf58be81ce382e4bf9c115a3430b917c6b9c302f534ddef459783fc048f98ce9`
+- container: `IcarusPreflightCombinedQOL`
+- local-only ports: `127.0.0.1:20108/udp` and `127.0.0.1:20109/udp`
+- cleanup: container removed and temporary appdata removed after the proof.
+
+Boot evidence:
+
+```text
+boot_signal=ok iteration=18
+20108/udp -> 127.0.0.1:20108
+20109/udp -> 127.0.0.1:20109
+LogIcarusGameStateRecording: Display: ReadFromProspectSaveState complete
+LogWorldStats: Adding world stats for prospect: Outpost006_Olympus
+LogIcarusGameModeSurvival: Verbose: NativeRaiseTheCurtain
+preflight_container_removed=1
+```
+
+Production safety check after cleanup:
+
+```text
+preflight_appdata_removed=1
+prod_ports
+20008/udp -> 0.0.0.0:20008
+20008/udp -> [::]:20008
+20009/udp -> 0.0.0.0:20009
+20009/udp -> [::]:20009
+```
+
 ## Remaining Production Gates
 
-- Boot a non-production Icarus server with the candidate pak.
 - Verify the launcher-installed client can join with the identical candidate
-  pak.
+  pak. This is intentionally outside the current non-client goal.
 - Only after those gates, rename the approved artifact to `pak/SlurpNet.pak`,
   update `pack.json`/launcher metadata for the new version, and deploy through
   the manual `icarus-deploy` workflow.
