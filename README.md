@@ -41,7 +41,6 @@ tag did not resolve during scaffolding. The current ich777 Unraid template uses
 |---|---:|---:|---|
 | Game | `20008` | `20008` | UDP |
 | Query | `20009` | `20009` | UDP |
-| RCON | `27037` | `27037` | TCP |
 
 The container and host ports intentionally match. Icarus advertises its
 `-Port` and `-QueryPort` values to Steam, so asymmetric Docker mappings can make
@@ -98,22 +97,23 @@ Forward these UDP ports to the Unraid host `192.168.225.196`:
 Do not reuse Icarus defaults on the router — `17777/UDP` and `27015/UDP` are
 owned by other game servers on this host.
 
-Do not expose RCON publicly. `27037/TCP` is for LAN/ops-backend access only.
-
 ## Operator Console Integration
 
-The ops-backend collector reads Icarus RCON through these values:
+The ops-backend collector does not use TCP Source RCON for Icarus. RocketWerkz
+documents Icarus "RCON" as in-game chat/command-window admin commands backed by
+`AdminPassword`; the official `ServerSettings.ini` sample does not define
+`RconEnabled`, `RconPort`, or `RconPassword`. A non-production TCP preflight on
+2026-06-03 bound `27037/TCP` but Source RCON auth reset the connection, so this
+repo intentionally does not publish a TCP RCON port.
 
-```text
-SLURPNET_ICARUS_CONTAINER     = Icarus
-SLURPNET_ICARUS_HOST          = 192.168.225.196
-SLURPNET_ICARUS_RCON_PORT     = 27037
-SLURPNET_ICARUS_RCON_PASSWORD = <same value as this repo's RCON_PASSWORD secret>
-```
+Current operator-console truth comes from:
 
-`scripts/render-server-settings.sh` writes `RconEnabled=true`, `RconPort`, and
-`RconPassword` only when `RCON_PASSWORD` is set. Production deploys get that
-value from the `production-icarus` environment secret named `RCON_PASSWORD`.
+- Docker fleet status for the `Icarus` container
+- the ops-backend generic Icarus log-tail collector
+- Steam query registration at `47.186.229.92:20009` with game port `20008`
+- launcher feed and manifest metadata under `mods.slurpgg.net/api/`
+
+See `docs/icarus-admin-query-surface-2026-06-03.md`.
 
 ## Local setup
 
@@ -122,9 +122,7 @@ cp .env.example .env
 ```
 
 Set `SERVER_PASSWORD` and generate a fresh `ADMIN_PASSWORD` in `.env`. The admin
-password is production-only and must never be committed. For ops-backend RCON,
-also generate a fresh `RCON_PASSWORD` and copy it into
-`SLURPNET_ICARUS_RCON_PASSWORD` in the ops-backend deployment.
+password is production-only and must never be committed.
 
 ## Validate
 

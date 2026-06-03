@@ -19,7 +19,6 @@ services:
       # so we publish 20008/20009 host AND bind 20008/20009 container.
       - "${GAME_PORT:-20008}:${GAME_PORT:-20008}/udp"
       - "${QUERY_PORT:-20009}:${QUERY_PORT:-20009}/udp"
-      - "${RCON_PORT:-27037}:${RCON_PORT:-27037}/tcp"
     volumes:
       - ${STEAMCMD_ROOT:-/mnt/user/appdata/steamcmd}:/serverdata/steamcmd
       - ${APPDATA_ROOT:-/mnt/cache/appdata/icarus}:/serverdata/serverfiles
@@ -41,8 +40,6 @@ services:
       # as native variables; deploy scripts render them into ServerSettings.ini.
       GAME_PORT: "${GAME_PORT:-20008}"
       QUERY_PORT: "${QUERY_PORT:-20009}"
-      RCON_PORT: "${RCON_PORT:-27037}"
-      RCON_PASSWORD: "${RCON_PASSWORD:-}"
       SERVER_NAME: "${SERVER_NAME:-SlurpNet Icarus}"
       SERVER_PASSWORD: "${SERVER_PASSWORD}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"

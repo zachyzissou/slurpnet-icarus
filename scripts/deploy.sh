@@ -8,12 +8,11 @@ SERVER_CONFIG_DIR="$APPDATA/Icarus/Saved/Config/WindowsServer"
 SERVER_MOD_DIR="$APPDATA/Icarus/Content/Paks/mods"
 GAME_PORT="${GAME_PORT:-20008}"
 QUERY_PORT="${QUERY_PORT:-20009}"
-RCON_PORT="${RCON_PORT:-27037}"
 SERVER_NAME="${SERVER_NAME:-SlurpNet Icarus}"
 RECONCILE_CONTAINER="${ICARUS_RECONCILE_CONTAINER:-0}"
 
 export APPDATA_ROOT="$APPDATA"
-export GAME_PORT QUERY_PORT RCON_PORT SERVER_NAME
+export GAME_PORT QUERY_PORT SERVER_NAME
 
 cd "$WORKSPACE"
 
@@ -69,15 +68,12 @@ run_compose() {
     -e GID="${ICARUS_GID:-100}"
     -e GAME_PORT="$GAME_PORT"
     -e QUERY_PORT="$QUERY_PORT"
-    -e RCON_PORT="$RCON_PORT"
-    -e RCON_PASSWORD
     -e "SERVER_NAME=${SERVER_NAME}"
     -e MAX_PLAYERS="${MAX_PLAYERS:-8}"
     -e SERVER_PASSWORD
     -e ADMIN_PASSWORD
     -p "${GAME_PORT}:${GAME_PORT}/udp"
     -p "${QUERY_PORT}:${QUERY_PORT}/udp"
-    -p "${RCON_PORT}:${RCON_PORT}/tcp"
     -v "${STEAMCMD_ROOT:-/mnt/user/appdata/steamcmd}:/serverdata/steamcmd"
     -v "$APPDATA:/serverdata/serverfiles"
   )
@@ -88,14 +84,6 @@ run_compose() {
 }
 
 if docker inspect "$CONTAINER" >/dev/null 2>&1; then
-  if [ "${RCON_PASSWORD:-}" != "" ] && [ "$RECONCILE_CONTAINER" != "1" ]; then
-    current_ports="$(docker port "$CONTAINER" 2>/dev/null || true)"
-    if ! printf '%s\n' "$current_ports" | grep -E "^${RCON_PORT}/tcp -> .*:${RCON_PORT}$" >/dev/null; then
-      echo "ERROR: RCON_PASSWORD is set but $CONTAINER does not publish ${RCON_PORT}/tcp." >&2
-      echo "Set ICARUS_RECONCILE_CONTAINER=1 to recreate the container from docker/docker-compose.yml." >&2
-      exit 1
-    fi
-  fi
   if [ "$RECONCILE_CONTAINER" = "1" ]; then
     echo "ICARUS_RECONCILE_CONTAINER=1; recreating $CONTAINER from docker/docker-compose.yml..."
     run_compose
@@ -115,9 +103,6 @@ echo "Verifying published UDP ports..."
 docker port "$CONTAINER" | tee /tmp/icarus-port-map.txt
 grep -E "^${GAME_PORT}/udp -> .*:${GAME_PORT}$" /tmp/icarus-port-map.txt >/dev/null
 grep -E "^${QUERY_PORT}/udp -> .*:${QUERY_PORT}$" /tmp/icarus-port-map.txt >/dev/null
-if [ "${RCON_PASSWORD:-}" != "" ]; then
-  grep -E "^${RCON_PORT}/tcp -> .*:${RCON_PORT}$" /tmp/icarus-port-map.txt >/dev/null
-fi
 
 echo "Deploy complete. Check logs with:"
 echo "docker logs --tail 80 $CONTAINER 2>&1"

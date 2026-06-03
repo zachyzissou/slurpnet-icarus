@@ -29,14 +29,6 @@ set +a
 # prospect launch is appropriate for a small private server.
 : "${ALLOW_NON_ADMINS_TO_LAUNCH_PROSPECTS:=True}"
 : "${ALLOW_NON_ADMINS_TO_DELETE_PROSPECTS:=False}"
-: "${RCON_PORT:=27037}"
-
-rcon_block=""
-if [ "${RCON_PASSWORD:-}" != "" ]; then
-  rcon_block="RconEnabled=true
-RconPort=${RCON_PORT}
-RconPassword=${RCON_PASSWORD}"
-fi
 
 cat > "$OUT_FILE" <<EOF
 [/Script/Icarus.DedicatedServerSettings]
@@ -52,7 +44,6 @@ ResumeProspect=True
 LoadProspect=${LOAD_PROSPECT}
 CreateProspect=
 LastProspectName=
-${rcon_block}
 
 [/Script/Icarus.CustomWorldSettings]
 GlobalExperienceMultiplier=2.0

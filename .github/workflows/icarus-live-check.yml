@@ -8,9 +8,6 @@ jobs:
     runs-on: [self-hosted, Linux, X64, unraid, lan, icarus-prod]
     environment: production-icarus
     timeout-minutes: 3
-    env:
-      RCON_PASSWORD: ${{ secrets.RCON_PASSWORD }}
-      RCON_PORT: "27037"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -25,11 +22,8 @@ jobs:
           timeout 15s docker port Icarus | tee /tmp/icarus-port-map.txt
           grep -E '^20008/udp -> .*:20008$' /tmp/icarus-port-map.txt
           grep -E '^20009/udp -> .*:20009$' /tmp/icarus-port-map.txt
-          grep -E '^27037/tcp -> .*:27037$' /tmp/icarus-port-map.txt
-          grep -E 'RconEnabled=true|RCONEnabled=true' /mnt/cache/appdata/icarus/Icarus/Saved/Config/WindowsServer/ServerSettings.ini
-          grep -E '^RconPort=27037$|^RCONPort=27037$' /mnt/cache/appdata/icarus/Icarus/Saved/Config/WindowsServer/ServerSettings.ini
-          test -n "${RCON_PASSWORD:-}" || { echo "ERROR: production-icarus RCON_PASSWORD secret is required"; exit 1; }
-          python3 scripts/check-source-rcon.py --host 127.0.0.1 --port "$RCON_PORT" --password-env RCON_PASSWORD --command listplayers
+          ! grep -Ei 'RconEnabled|RCONEnabled|RconPort|RCONPort|RconPassword|RCONPassword' /mnt/cache/appdata/icarus/Icarus/Saved/Config/WindowsServer/ServerSettings.ini
+          timeout 15s docker logs --tail 240 Icarus 2>&1 | grep -E 'LogIcarusGameStateRecording: Display: ReadFromProspectSaveState complete|LogIcarusGameModeSurvival: --------  Server is now empty  --------'
           test -f /mnt/cache/appdata/icarus/Icarus/Content/Paks/mods/SlurpNet.pak
           sha256sum /mnt/cache/appdata/icarus/Icarus/Content/Paks/mods/SlurpNet.pak | tee /tmp/icarus-pak-sha.txt
           curl -fsS https://mods.slurpgg.net/api/servers.json -o /tmp/icarus-servers.json
