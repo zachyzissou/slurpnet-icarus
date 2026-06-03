@@ -39,14 +39,15 @@ tag did not resolve during scaffolding. The current ich777 Unraid template uses
 
 | Purpose | Host port | Container port | Protocol |
 |---|---:|---:|---|
-| Game | `20008` | `17777` | UDP |
-| Query | `20009` | `27015` | UDP |
+| Game | `20008` | `20008` | UDP |
+| Query | `20009` | `20009` | UDP |
+| RCON | `27037` | `27037` | TCP |
 
-The container binds Icarus defaults internally (`17777/UDP` game,
-`27015/UDP` query). Docker publishes them on SlurpNet host ports `20008` and
-`20009`, which is what UniFi forwards. The host scheme avoids two conflicts on
-this Unraid box: `17777/UDP` is already Arma Reforger A2S, and `27015/UDP` is
-bound by 7 Days to Die.
+The container and host ports intentionally match. Icarus advertises its
+`-Port` and `-QueryPort` values to Steam, so asymmetric Docker mappings can make
+Steam query ports that are not reachable from the WAN. The `20008/20009` scheme
+avoids two conflicts on this Unraid box: `17777/UDP` is already Arma Reforger
+A2S, and `27015/UDP` is bound by 7 Days to Die.
 
 ## Mod pak compatibility
 
@@ -61,7 +62,7 @@ Weekly Icarus updates frequently break mods. After every Icarus update, assume
 the merged pak is suspect until the operator rebuilds it, verifies the server
 boots, and verifies a client can join with the launcher-installed pak.
 
-Comfortable tier:
+Current live Comfortable tier (`2026.06.02a`, legacy six-mod pak):
 
 - Icarus Plus
 - laanp-PetesBeaconTeleport
@@ -69,6 +70,15 @@ Comfortable tier:
 - CaveMaster
 - KeepTheTrees
 - Food Buff 5x
+
+Next approved rebuild path:
+
+- retire Icarus Plus and Food Buff 5x from the public source set
+- use `laanp-Combined_QOL_v1_w234_P.pak` plus the four maintained laanp
+  separated paks
+- keep the single merged `SlurpNet.pak` contract unchanged
+
+See `Mods/MOD_LICENSES.md` and `docs/combined-qol-preflight-2026-06-03.md`.
 
 ## Server browser
 
@@ -88,6 +98,23 @@ Forward these UDP ports to the Unraid host `192.168.225.196`:
 Do not reuse Icarus defaults on the router — `17777/UDP` and `27015/UDP` are
 owned by other game servers on this host.
 
+Do not expose RCON publicly. `27037/TCP` is for LAN/ops-backend access only.
+
+## Operator Console Integration
+
+The ops-backend collector reads Icarus RCON through these values:
+
+```text
+SLURPNET_ICARUS_CONTAINER     = Icarus
+SLURPNET_ICARUS_HOST          = 192.168.225.196
+SLURPNET_ICARUS_RCON_PORT     = 27037
+SLURPNET_ICARUS_RCON_PASSWORD = <same value as this repo's RCON_PASSWORD secret>
+```
+
+`scripts/render-server-settings.sh` writes `RconEnabled=true`, `RconPort`, and
+`RconPassword` only when `RCON_PASSWORD` is set. Production deploys get that
+value from the `production-icarus` environment secret named `RCON_PASSWORD`.
+
 ## Local setup
 
 ```bash
@@ -95,7 +122,9 @@ cp .env.example .env
 ```
 
 Set `SERVER_PASSWORD` and generate a fresh `ADMIN_PASSWORD` in `.env`. The admin
-password is production-only and must never be committed.
+password is production-only and must never be committed. For ops-backend RCON,
+also generate a fresh `RCON_PASSWORD` and copy it into
+`SLURPNET_ICARUS_RCON_PASSWORD` in the ops-backend deployment.
 
 ## Validate
 
@@ -124,6 +153,10 @@ Deployment runs through the repo-scoped self-hosted GitHub runner on Unraid:
 
 The deploy sync is additive and does not delete runtime saves or generated
 server state.
+
+By default `scripts/deploy.sh` restarts the existing `Icarus` container after
+syncing config and pak files. To intentionally recreate the container from
+`docker/docker-compose.yml`, set `ICARUS_RECONCILE_CONTAINER=1` for that deploy.
 
 Runner recovery: see [docs/runner-persistence.md](./docs/runner-persistence.md).
 

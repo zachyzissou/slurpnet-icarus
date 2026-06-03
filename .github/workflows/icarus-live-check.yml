@@ -6,8 +6,15 @@ on:
 jobs:
   live-check:
     runs-on: [self-hosted, Linux, X64, unraid, lan, icarus-prod]
+    environment: production-icarus
     timeout-minutes: 3
+    env:
+      RCON_PASSWORD: ${{ secrets.RCON_PASSWORD }}
+      RCON_PORT: "27037"
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Inspect Icarus container
         run: |
           set -euo pipefail
@@ -16,8 +23,52 @@ jobs:
           timeout 15s docker top Icarus -eo pid,ppid,comm,args | head -80 || true
           # ss is not installed in the runner container; use docker port to verify the published UDP mapping.
           timeout 15s docker port Icarus | tee /tmp/icarus-port-map.txt
-          grep -E '^17777/udp -> .*:20008$' /tmp/icarus-port-map.txt
-          grep -E '^27015/udp -> .*:20009$' /tmp/icarus-port-map.txt
+          grep -E '^20008/udp -> .*:20008$' /tmp/icarus-port-map.txt
+          grep -E '^20009/udp -> .*:20009$' /tmp/icarus-port-map.txt
+          grep -E '^27037/tcp -> .*:27037$' /tmp/icarus-port-map.txt
+          grep -E 'RconEnabled=true|RCONEnabled=true' /mnt/cache/appdata/icarus/Icarus/Saved/Config/WindowsServer/ServerSettings.ini
+          grep -E '^RconPort=27037$|^RCONPort=27037$' /mnt/cache/appdata/icarus/Icarus/Saved/Config/WindowsServer/ServerSettings.ini
+          test -n "${RCON_PASSWORD:-}" || { echo "ERROR: production-icarus RCON_PASSWORD secret is required"; exit 1; }
+          python3 scripts/check-source-rcon.py --host 127.0.0.1 --port "$RCON_PORT" --password-env RCON_PASSWORD --command listplayers
           test -f /mnt/cache/appdata/icarus/Icarus/Content/Paks/mods/SlurpNet.pak
-          sha256sum /mnt/cache/appdata/icarus/Icarus/Content/Paks/mods/SlurpNet.pak
+          sha256sum /mnt/cache/appdata/icarus/Icarus/Content/Paks/mods/SlurpNet.pak | tee /tmp/icarus-pak-sha.txt
+          curl -fsS https://mods.slurpgg.net/api/servers.json -o /tmp/icarus-servers.json
+          curl -fsS https://mods.slurpgg.net/api/SlurpNet_Icarus_Mods-manifest.json -o /tmp/icarus-manifest.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          servers = json.loads(Path("/tmp/icarus-servers.json").read_text())
+          manifest = json.loads(Path("/tmp/icarus-manifest.json").read_text())
+          sha = Path("/tmp/icarus-pak-sha.txt").read_text().split()[0]
+          entry = next((s for s in servers.get("servers", []) if s.get("serverId") == "icarus"), None)
+          if not entry:
+              raise SystemExit("Icarus row missing from public servers.json")
+          if entry.get("serverPort") != 20008 or entry.get("queryPort") != 20009:
+              raise SystemExit(f"Icarus public feed has wrong ports: {entry.get('serverPort')}/{entry.get('queryPort')}")
+          if entry.get("launchArgs") != ["-dx12"]:
+              raise SystemExit(f"Icarus public feed missing -dx12 launchArgs: {entry.get('launchArgs')}")
+          if entry.get("modpack", {}).get("version") != manifest.get("version"):
+              raise SystemExit("Icarus public feed version does not match manifest version")
+          file_info = manifest.get("files", {}).get("Icarus/Content/Paks/mods/SlurpNet.pak")
+          if not file_info:
+              raise SystemExit("Icarus manifest missing SlurpNet.pak entry")
+          if file_info.get("sha256") != sha:
+              raise SystemExit(f"live pak SHA {sha} does not match manifest {file_info.get('sha256')}")
+          print(f"Feed/manifest check passed: version={manifest.get('version')} sha={sha}")
+          PY
+          curl -fsS "https://api.steampowered.com/ISteamApps/GetServersAtAddress/v1/?addr=47.186.229.92" -o /tmp/icarus-steam.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path("/tmp/icarus-steam.json").read_text())
+          servers = data.get("response", {}).get("servers", [])
+          match = next((s for s in servers if s.get("addr") == "47.186.229.92:20009"), None)
+          if not match:
+              raise SystemExit("Steam API does not list SlurpNet Icarus at 47.186.229.92:20009")
+          if str(match.get("gameport")) != "20008":
+              raise SystemExit(f"Steam API reports wrong gameport: {match.get('gameport')}")
+          print(f"Steam registration check passed: addr={match.get('addr')} gameport={match.get('gameport')}")
+          PY
           timeout 15s docker logs --tail 160 Icarus || true

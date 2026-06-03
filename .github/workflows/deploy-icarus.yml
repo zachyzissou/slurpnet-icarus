@@ -1,20 +1,16 @@
 name: icarus-deploy
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/deploy-icarus.yml"
-      - "config/**"
-      - "docker/**"
-      - "launcher/**"
-      - "Mods/**"
-      - "pack.json"
-      - "PACK_PUBLISHING.md"
-      - "scripts/**"
-      - "README.md"
-      - "CHANGELOG.md"
   workflow_dispatch:
+    inputs:
+      reconcile_container:
+        description: "Recreate the Icarus container from docker/docker-compose.yml"
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 concurrency:
   group: icarus-production
@@ -28,8 +24,11 @@ jobs:
       SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
       ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
       SLURPNET_LAUNCHER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+      RCON_PASSWORD: ${{ secrets.RCON_PASSWORD }}
       SERVER_NAME: "SlurpNet Icarus"
       MAX_PLAYERS: "8"
+      RCON_PORT: "27037"
+      ICARUS_RECONCILE_CONTAINER: ${{ inputs.reconcile_container == 'true' && '1' || '0' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -47,11 +46,14 @@ jobs:
 
       - name: Render production ServerSettings.ini
         run: |
+          test -n "${RCON_PASSWORD}" || { echo "ERROR: production-icarus RCON_PASSWORD secret is required"; exit 1; }
           cat > .env.production <<EOF
           SERVER_NAME="${SERVER_NAME}"
           SERVER_PASSWORD=${SERVER_PASSWORD}
           ADMIN_PASSWORD=${ADMIN_PASSWORD}
           MAX_PLAYERS=${MAX_PLAYERS}
+          RCON_PORT=${RCON_PORT}
+          RCON_PASSWORD=${RCON_PASSWORD}
           EOF
           scripts/render-server-settings.sh .env.production config/ServerSettings.ini
 
