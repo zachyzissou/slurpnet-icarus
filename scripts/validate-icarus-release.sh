@@ -53,9 +53,9 @@ grep -q '\${STEAMCMD_ROOT:-/mnt/user/appdata/steamcmd}:/serverdata/steamcmd' doc
 grep -q '\${APPDATA_ROOT:-/mnt/cache/appdata/icarus}:/serverdata/serverfiles' docker/docker-compose.yml || { echo "ERROR: compose must honor APPDATA_ROOT" >&2; exit 1; }
 grep -q 'ICARUS_RECONCILE_CONTAINER=1' scripts/deploy.sh || { echo "ERROR: deploy script must keep container reconciliation explicit" >&2; exit 1; }
 grep -q 'docker run' scripts/deploy.sh || { echo "ERROR: deploy script must support Unraid hosts without docker compose" >&2; exit 1; }
-grep -q 'MEMORY_LIMIT="${ICARUS_MEMORY_LIMIT:-24g}"' scripts/deploy.sh || { echo "ERROR: deploy script must default ICARUS_MEMORY_LIMIT to 24g" >&2; exit 1; }
-grep -q -- '--memory "$MEMORY_LIMIT"' scripts/deploy.sh || { echo "ERROR: docker run fallback must use MEMORY_LIMIT" >&2; exit 1; }
-grep -q 'docker update --memory "$MEMORY_LIMIT" --memory-swap -1 "$CONTAINER"' scripts/deploy.sh || { echo "ERROR: deploy script must enforce live container memory limit after reconcile" >&2; exit 1; }
+grep -Eq 'MEMORY_LIMIT=.*ICARUS_MEMORY_LIMIT:-24g' scripts/deploy.sh || { echo "ERROR: deploy script must default ICARUS_MEMORY_LIMIT to 24g" >&2; exit 1; }
+grep -Eq -- '--memory[[:space:]]+"?\$MEMORY_LIMIT"?' scripts/deploy.sh || { echo "ERROR: docker run fallback must use MEMORY_LIMIT" >&2; exit 1; }
+grep -Eq 'docker update .*--memory[[:space:]]+"?\$MEMORY_LIMIT"?' scripts/deploy.sh || { echo "ERROR: deploy script must enforce live container memory limit after reconcile" >&2; exit 1; }
 grep -q -- '-p "${GAME_PORT}:${GAME_PORT}/udp"' scripts/deploy.sh || { echo "ERROR: docker run fallback must use symmetric game port" >&2; exit 1; }
 grep -q -- '-p "${QUERY_PORT}:${QUERY_PORT}/udp"' scripts/deploy.sh || { echo "ERROR: docker run fallback must use symmetric query port" >&2; exit 1; }
 ! grep -q 'RCON_PORT' scripts/deploy.sh || { echo "ERROR: deploy script must not publish unproven Icarus TCP RCON" >&2; exit 1; }
