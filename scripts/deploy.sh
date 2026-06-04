@@ -86,6 +86,7 @@ run_compose() {
 if docker inspect "$CONTAINER" >/dev/null 2>&1; then
   if [ "$RECONCILE_CONTAINER" = "1" ]; then
     echo "ICARUS_RECONCILE_CONTAINER=1; recreating $CONTAINER from docker/docker-compose.yml..."
+    docker rm -f "$CONTAINER" >/dev/null
     run_compose
   else
     echo "Restarting existing $CONTAINER. Set ICARUS_RECONCILE_CONTAINER=1 to recreate from compose."
