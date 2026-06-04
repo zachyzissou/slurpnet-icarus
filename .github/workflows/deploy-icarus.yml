@@ -36,6 +36,42 @@ jobs:
           # the persistent runner workspace instead of deleting ignored files.
           clean: false
 
+      - name: Hydrate staged pak from live appdata when documented
+        run: |
+          set -euo pipefail
+          expected_sha="$(python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          text = Path("Mods/MODS.md").read_text(encoding="utf-8")
+          match = re.search(r"SHA256: `([0-9a-f]{64})`", text)
+          if not match:
+              raise SystemExit("Mods/MODS.md is missing the documented SlurpNet.pak SHA256")
+          print(match.group(1))
+          PY
+          )"
+          live_pak="${ICARUS_APPDATA:-/mnt/cache/appdata/icarus}/Icarus/Content/Paks/mods/SlurpNet.pak"
+          if [ ! -f "$live_pak" ]; then
+            echo "No live pak found at $live_pak; keeping workspace pak."
+            exit 0
+          fi
+          live_sha="$(sha256sum "$live_pak" | awk '{print $1}')"
+          if [ "$live_sha" != "$expected_sha" ]; then
+            echo "Live pak SHA $live_sha does not match documented SHA $expected_sha; keeping workspace pak."
+            exit 0
+          fi
+          workspace_sha=""
+          if [ -f pak/SlurpNet.pak ]; then
+            workspace_sha="$(sha256sum pak/SlurpNet.pak | awk '{print $1}')"
+          fi
+          if [ "$workspace_sha" != "$expected_sha" ]; then
+            mkdir -p pak
+            cp "$live_pak" pak/SlurpNet.pak
+            echo "Hydrated pak/SlurpNet.pak from live appdata SHA $expected_sha."
+          else
+            echo "Workspace pak already matches documented SHA $expected_sha."
+          fi
+
       - name: Validate release
         run: scripts/validate-icarus-release.sh
 
