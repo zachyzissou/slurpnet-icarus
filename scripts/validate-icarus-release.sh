@@ -56,6 +56,7 @@ grep -q 'docker run' scripts/deploy.sh || { echo "ERROR: deploy script must supp
 grep -Eq 'MEMORY_LIMIT=.*ICARUS_MEMORY_LIMIT:-24g' scripts/deploy.sh || { echo "ERROR: deploy script must default ICARUS_MEMORY_LIMIT to 24g" >&2; exit 1; }
 grep -Eq -- '--memory[[:space:]]+"?\$MEMORY_LIMIT"?' scripts/deploy.sh || { echo "ERROR: docker run fallback must use MEMORY_LIMIT" >&2; exit 1; }
 grep -Eq 'docker update .*--memory[[:space:]]+"?\$MEMORY_LIMIT"?' scripts/deploy.sh || { echo "ERROR: deploy script must enforce live container memory limit after reconcile" >&2; exit 1; }
+grep -Eq 'docker update .*--memory-swap[[:space:]]+-1' scripts/deploy.sh || { echo "ERROR: deploy script must attempt unlimited memory-swap before fallback" >&2; exit 1; }
 grep -q -- '-p "${GAME_PORT}:${GAME_PORT}/udp"' scripts/deploy.sh || { echo "ERROR: docker run fallback must use symmetric game port" >&2; exit 1; }
 grep -q -- '-p "${QUERY_PORT}:${QUERY_PORT}/udp"' scripts/deploy.sh || { echo "ERROR: docker run fallback must use symmetric query port" >&2; exit 1; }
 ! grep -q 'RCON_PORT' scripts/deploy.sh || { echo "ERROR: deploy script must not publish unproven Icarus TCP RCON" >&2; exit 1; }
