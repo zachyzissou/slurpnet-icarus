@@ -84,6 +84,14 @@ run_compose() {
   docker run "${run_args[@]}" ich777/steamcmd:icarus
 }
 
+apply_memory_limit() {
+  if docker update --memory "$MEMORY_LIMIT" --memory-swap -1 "$CONTAINER" >/dev/null 2>&1; then
+    return
+  fi
+  echo "WARNING: docker could not apply --memory-swap=-1; applying --memory only." >&2
+  docker update --memory "$MEMORY_LIMIT" "$CONTAINER" >/dev/null
+}
+
 if docker inspect "$CONTAINER" >/dev/null 2>&1; then
   if [ "$RECONCILE_CONTAINER" = "1" ]; then
     echo "ICARUS_RECONCILE_CONTAINER=1; recreating $CONTAINER from docker/docker-compose.yml..."
@@ -102,7 +110,7 @@ echo "Verifying container is running..."
 docker inspect -f '{{.State.Running}}' "$CONTAINER" | grep -q '^true$'
 
 echo "Applying memory ceiling..."
-docker update --memory "$MEMORY_LIMIT" --memory-swap -1 "$CONTAINER" >/dev/null
+apply_memory_limit
 
 echo "Verifying published UDP ports..."
 docker port "$CONTAINER" | tee /tmp/icarus-port-map.txt
