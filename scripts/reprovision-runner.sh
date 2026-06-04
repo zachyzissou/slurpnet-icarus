@@ -51,6 +51,17 @@ runner_name='$RUNNER_NAME'
 labels='$LABELS'
 env_file="/tmp/\${container}.env"
 
+case "\$config_dir" in
+  ""|"/"|"/mnt"|"/mnt/"|"/mnt/user"|"/mnt/user/"|"/mnt/user/appdata"|"/mnt/user/appdata/")
+    echo "Refusing unsafe runner config dir: \$config_dir" >&2
+    exit 1
+    ;;
+esac
+
+# The persistent runner config can contain a stale .runner registration after
+# GitHub deletes an offline runner. Clear only the config mount; keep the work
+# directory cache intact.
+rm -rf "\$config_dir"
 mkdir -p "\$config_dir" "\$work_dir" "\$appdata" "\$steamcmd_root" "\$downloads_root"
 cat > "\$env_file" <<ENV
 RUNNER_WORKDIR=/tmp/runner/work
