@@ -16,4 +16,21 @@ jobs:
       - name: Validate Icarus release contract
         run: scripts/validate-icarus-release.sh
       - name: Validate launcher metadata
-        run: python3 -m json.tool pack.json launcher/servers-entry.json >/dev/null
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in ("pack.json", "launcher/servers-entry.json"):
+              json.loads(Path(path).read_text(encoding="utf-8"))
+              print(f"{path}: ok")
+          PY
+      - name: ShellCheck deployment scripts
+        run: |
+          shellcheck \
+            scripts/deploy.sh \
+            scripts/merge-pak.sh \
+            scripts/render-server-settings.sh \
+            scripts/reprovision-runner.sh \
+            scripts/validate-icarus-release.sh \
+            scripts/validate-unraid-runner-ready.sh

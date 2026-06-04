@@ -58,11 +58,9 @@ def build_entry(pack: dict, zip_size: int, private: bool) -> dict:
         "serverSideOnly": launcher["serverSideOnly"],
     }
     if private:
-        entry.update(
-            {
-                "password": os.environ.get("SLURPNET_LAUNCHER_PASSWORD", ""),
-            }
-        )
+        password = os.environ.get("SLURPNET_LAUNCHER_PASSWORD")
+        if password:
+            entry["password"] = password
         entry["modpack"].update(
             {
                 "url": pack["liveZipUrl"],
@@ -72,7 +70,7 @@ def build_entry(pack: dict, zip_size: int, private: bool) -> dict:
     return entry
 
 
-def merge_feed(feed_path: Path, entry: dict) -> bool:
+def merge_feed(feed_path: Path, entry: dict, preserve_private_fields: bool = False) -> bool:
     if not feed_path.exists():
         print(f"Skipping missing launcher feed: {feed_path}")
         return False
@@ -80,7 +78,12 @@ def merge_feed(feed_path: Path, entry: dict) -> bool:
     servers = data.setdefault("servers", [])
     for index, server in enumerate(servers):
         if server.get("serverId") == entry["serverId"] or server.get("game") == entry["game"]:
-            servers[index] = entry
+            merged = dict(entry)
+            if preserve_private_fields:
+                for field in ("password", "upstream"):
+                    if field not in merged and field in server:
+                        merged[field] = server[field]
+            servers[index] = merged
             break
     else:
         servers.append(entry)
@@ -152,7 +155,7 @@ def main() -> int:
     launcher_entry_path.write_text(json.dumps(private_entry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     updated = []
-    if merge_feed(artifact_dir / "launcher-servers.json", private_entry):
+    if merge_feed(artifact_dir / "launcher-servers.json", private_entry, preserve_private_fields=True):
         updated.append("launcher-servers.json")
     if merge_feed(artifact_dir / "servers.json", public_entry):
         updated.append("servers.json")

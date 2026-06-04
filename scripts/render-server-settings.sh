@@ -50,4 +50,3 @@ GlobalExperienceMultiplier=2.0
 EOF
 
 echo "$OUT_FILE"
-

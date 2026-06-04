@@ -20,8 +20,8 @@ services:
       - "${GAME_PORT:-20008}:${GAME_PORT:-20008}/udp"
       - "${QUERY_PORT:-20009}:${QUERY_PORT:-20009}/udp"
     volumes:
-      - /mnt/user/appdata/steamcmd:/serverdata/steamcmd
-      - /mnt/cache/appdata/icarus:/serverdata/serverfiles
+      - ${STEAMCMD_ROOT:-/mnt/user/appdata/steamcmd}:/serverdata/steamcmd
+      - ${APPDATA_ROOT:-/mnt/cache/appdata/icarus}:/serverdata/serverfiles
     environment:
       GAME_ID: "${GAME_ID:-2089300}"
       # GAME_PARAMS -Port/-QueryPort must match the host-published ports (above).
@@ -44,4 +44,3 @@ services:
       SERVER_PASSWORD: "${SERVER_PASSWORD}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
       MAX_PLAYERS: "${MAX_PLAYERS:-8}"
-

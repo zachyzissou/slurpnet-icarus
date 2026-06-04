@@ -1,20 +1,16 @@
 name: icarus-deploy
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/deploy-icarus.yml"
-      - "config/**"
-      - "docker/**"
-      - "launcher/**"
-      - "Mods/**"
-      - "pack.json"
-      - "PACK_PUBLISHING.md"
-      - "scripts/**"
-      - "README.md"
-      - "CHANGELOG.md"
   workflow_dispatch:
+    inputs:
+      reconcile_container:
+        description: "Recreate the Icarus container from docker/docker-compose.yml"
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 concurrency:
   group: icarus-production
@@ -30,6 +26,7 @@ jobs:
       SLURPNET_LAUNCHER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
       SERVER_NAME: "SlurpNet Icarus"
       MAX_PLAYERS: "8"
+      ICARUS_RECONCILE_CONTAINER: ${{ inputs.reconcile_container == 'true' && '1' || '0' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6

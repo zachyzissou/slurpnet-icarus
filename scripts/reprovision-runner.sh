@@ -34,6 +34,9 @@ fi
 
 registration_token="$(gh api -X POST "repos/${REPO}/actions/runners/registration-token" --jq .token)"
 
+# The runner token and paths are intentionally expanded locally into the
+# one-shot remote bootstrap script.
+# shellcheck disable=SC2087
 ssh -p "$SSH_PORT" -o BatchMode=yes -o ConnectTimeout=8 "$SSH_TARGET" 'bash -s' <<EOF_REMOTE
 set -euo pipefail
 container='$CONTAINER'
