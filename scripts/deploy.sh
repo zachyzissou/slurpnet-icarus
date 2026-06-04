@@ -10,6 +10,7 @@ GAME_PORT="${GAME_PORT:-20008}"
 QUERY_PORT="${QUERY_PORT:-20009}"
 SERVER_NAME="${SERVER_NAME:-SlurpNet Icarus}"
 RECONCILE_CONTAINER="${ICARUS_RECONCILE_CONTAINER:-0}"
+MEMORY_LIMIT="${ICARUS_MEMORY_LIMIT:-24g}"
 
 export APPDATA_ROOT="$APPDATA"
 export GAME_PORT QUERY_PORT SERVER_NAME
@@ -60,7 +61,7 @@ run_compose() {
     --name "$CONTAINER"
     --restart unless-stopped
     --cpuset-cpus "32-47,96-111"
-    --memory 24g
+    --memory "$MEMORY_LIMIT"
     -e GAME_ID="${GAME_ID:-2089300}"
     -e "GAME_PARAMS=-SteamServerName=\"${SERVER_NAME}\" -Port=${GAME_PORT} -QueryPort=${QUERY_PORT} -log"
     -e VALIDATE="${VALIDATE:-}"
@@ -99,6 +100,9 @@ fi
 
 echo "Verifying container is running..."
 docker inspect -f '{{.State.Running}}' "$CONTAINER" | grep -q '^true$'
+
+echo "Applying memory ceiling..."
+docker update --memory "$MEMORY_LIMIT" --memory-swap -1 "$CONTAINER" >/dev/null
 
 echo "Verifying published UDP ports..."
 docker port "$CONTAINER" | tee /tmp/icarus-port-map.txt
