@@ -17,6 +17,7 @@ jobs:
           set -euo pipefail
           timeout 15s docker ps --filter name=Icarus --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
           timeout 15s docker inspect Icarus --format 'name={{.Name}} image={{.Config.Image}} restart={{.HostConfig.RestartPolicy.Name}} cpuset={{.HostConfig.CpusetCpus}} memory={{.HostConfig.Memory}}'
+          test "$(timeout 15s docker inspect Icarus --format '{{.HostConfig.Memory}}')" = "25769803776"
           timeout 15s docker top Icarus -eo pid,ppid,comm,args | head -80 || true
           # ss is not installed in the runner container; use docker port to verify the published UDP mapping.
           timeout 15s docker port Icarus | tee /tmp/icarus-port-map.txt
